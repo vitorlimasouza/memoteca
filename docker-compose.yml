@@ -1,0 +1,52 @@
+version: '1.0.0'
+services:
+  frontend:
+    build:
+      context: ./memoteca-front
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports: 
+      - "4200:80"
+    networks:
+      - bridge
+    depends_on:
+      - backend
+
+  backend:
+    build: 
+      context: ./memoteca-back
+      dockerfile: Dockerfile
+    container_name: backend
+    expose:
+      - "7196"
+    ports: 
+      - "7196:7196"
+    environment:
+      - ASPNETCORE_URLS=http://+:7196
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings=Host=db;Port=5432;Username=postgres;Password=docker;Database=memoteca;
+    networks:
+      - bridge
+    depends_on:
+      - db
+  
+  db:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=mydatabase
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    networks:
+      - bridge
+    
+networks:
+  bridge:
+    driver: bridge
+
+volumes: 
+  data:
+    driver: local
+  
